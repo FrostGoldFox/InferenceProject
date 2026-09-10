@@ -9,6 +9,42 @@ public sealed class RouterController(
     IMessageRouter messageRouter,
     ILogger<RouterController> logger) : ControllerBase
 {
+    // Client(inferenceclinet) -> Middleware(client/login) -> MainServer(login/client).
+    // 요청 예: { "type": "login", "id": "...", "hashpassword": "..." }
+    [HttpPost("client/login")]
+    [Consumes("application/json")]
+    public Task<IActionResult> ClientLogin(
+        [FromBody] JsonElement message,
+        CancellationToken cancellationToken)
+    {
+        if (!message.TryGetProperty("type", out var typeProperty) || typeProperty.GetString() != "login")
+        {
+            return Task.FromResult<IActionResult>(BadRequest(new { error = "type must be 'login'" }));
+        }
+
+        return ForwardAsync(
+            () => messageRouter.RouteLoginAsync(message, cancellationToken),
+            "MainServer");
+    }
+
+    // MainServer(login/Response) -> Middleware -> Client(loginResponse).
+    // 요청 예: { "type": "loginResponse", "HashPassword": "...", "ID": "..." }
+    [HttpPost("login/Response")]
+    [Consumes("application/json")]
+    public Task<IActionResult> LoginResponse(
+        [FromBody] JsonElement message,
+        CancellationToken cancellationToken)
+    {
+        if (!message.TryGetProperty("type", out var typeProperty) || typeProperty.GetString() != "loginResponse")
+        {
+            return Task.FromResult<IActionResult>(BadRequest(new { error = "type must be 'loginResponse'" }));
+        }
+
+        return ForwardAsync(
+            () => messageRouter.RouteLoginResponseAsync(message, cancellationToken),
+            "Client");
+    }
+
     [HttpPost("Request")]
     [HttpPost("api/router")]
     [Consumes("application/json")]

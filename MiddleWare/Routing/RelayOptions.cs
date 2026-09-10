@@ -15,4 +15,8 @@ public sealed class RelayOptions
     public string ClientBaseUrl { get; init; } = "http://localhost:5091/";
 
     public string ClientResponsePath { get; init; } = "MainResponse";
+
+    public string MainServerLoginPath { get; init; } = "login/client";
+
+    public string ClientLoginResponsePath { get; init; } = "loginResponse";
 }

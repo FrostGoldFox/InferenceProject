@@ -115,6 +115,34 @@ public sealed class ClientService
     }
 }
 
+public sealed class LoginRepository(IOptions<DatabaseOptions> options)
+{
+    private readonly DatabaseOptions _options = options.Value;
+
+    public async Task<string?> GetHashPasswordAsync(string id, CancellationToken cancellationToken)
+    {
+        var connectionString = new MySqlConnectionStringBuilder
+        {
+            Server = _options.Host,
+            Port = _options.Port,
+            Database = _options.Database,
+            UserID = _options.User,
+            Password = _options.Password,
+            SslMode = MySqlSslMode.Preferred
+        }.ConnectionString;
+
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT `HashPassword` FROM `Login` WHERE `ID` = @ID;";
+        command.Parameters.AddWithValue("@ID", id);
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        return result as string;
+    }
+}
+
 public sealed class ResultRepository(
     IOptions<DatabaseOptions> options,
     ILogger<ResultRepository> logger)

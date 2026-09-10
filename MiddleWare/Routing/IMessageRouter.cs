@@ -6,6 +6,14 @@ public interface IMessageRouter
 {
     Task<object> RouteAsync(JsonElement message, CancellationToken cancellationToken = default);
 
+    Task<object> RouteLoginAsync(
+        JsonElement message,
+        CancellationToken cancellationToken = default);
+
+    Task<object> RouteLoginResponseAsync(
+        JsonElement message,
+        CancellationToken cancellationToken = default);
+
     Task<object> RouteToInferenceServerAsync(
         JsonElement message,
         CancellationToken cancellationToken = default);

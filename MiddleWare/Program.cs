@@ -1,3 +1,4 @@
+using MiddleWare.Auth;
 using MiddleWare.Routing;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,7 @@ builder.Services.AddHttpClient("Relay", httpClient =>
 builder.Services.Configure<RelayOptions>(
     builder.Configuration.GetSection(RelayOptions.SectionName));
 builder.Services.AddScoped<IMessageRouter, MessageRouter>();
+builder.Services.AddSingleton<IClientSessionStore, ClientSessionStore>();
 
 var app = builder.Build();
 

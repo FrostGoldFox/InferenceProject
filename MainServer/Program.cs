@@ -7,6 +7,7 @@ builder.Services.AddOpenApi();
 builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection("Database"));
 builder.Services.AddSingleton<ClientService>();
 builder.Services.AddSingleton<ResultRepository>();
+builder.Services.AddSingleton<LoginRepository>();
 builder.Services.AddHostedService<ResultBatchWorker>();
 builder.Services.AddHttpClient<MiddleWareClient>(httpClient =>
 {

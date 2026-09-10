@@ -14,6 +14,11 @@ public sealed class MiddleWareClient(HttpClient httpClient)
         CancellationToken cancellationToken) =>
         PostJsonAsync("MainResponse", response, cancellationToken);
 
+    public Task SendLoginResponseAsync(
+        LoginResponseMessage response,
+        CancellationToken cancellationToken) =>
+        PostJsonAsync("login/Response", response, cancellationToken);
+
     private async Task PostJsonAsync<T>(
         string path,
         T message,

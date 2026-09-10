@@ -63,6 +63,62 @@ public sealed class RequestController(
 }
 
 [ApiController]
+[Route("login/client")]
+public sealed class LoginController(
+    LoginRepository loginRepository,
+    MiddleWareClient middleWareClient,
+    ILogger<LoginController> logger) : ControllerBase
+{
+    [HttpPost]
+    [Consumes("application/json")]
+    [Produces("application/json")]
+    public async Task<IActionResult> ReceiveLogin(
+        [FromBody] LoginClientMessage request,
+        CancellationToken cancellationToken)
+    {
+        if (!string.Equals(request.Type, "login", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { error = "type must be login" });
+        }
+
+        var storedHash = await loginRepository.GetHashPasswordAsync(request.Id, cancellationToken);
+
+        var response = new LoginResponseMessage
+        {
+            HashPassword = storedHash ?? string.Empty,
+            Id = request.Id
+        };
+
+        try
+        {
+            await middleWareClient.SendLoginResponseAsync(response, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OperationCanceledException exception)
+        {
+            logger.LogError(exception, "MiddleWare login/Response timed out. Id: {Id}", request.Id);
+            return StatusCode(StatusCodes.Status504GatewayTimeout, new
+            {
+                error = "MiddleWare login/Response timed out"
+            });
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogError(exception, "MiddleWare login/Response failed. Id: {Id}", request.Id);
+            return StatusCode(StatusCodes.Status502BadGateway, new
+            {
+                error = "MiddleWare login/Response failed"
+            });
+        }
+
+        return Ok(new { status = "forwarded" });
+    }
+}
+
+[ApiController]
 [Route("ResponSE")]
 public sealed class ResponseController(
     ClientService clientService,

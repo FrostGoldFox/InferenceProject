@@ -71,6 +71,33 @@ public sealed class MainResponseMessage
     public string SucessRate { get; init; } = string.Empty;
 }
 
+public sealed class LoginClientMessage
+{
+    [JsonPropertyName("type")]
+    [Required]
+    public string Type { get; init; } = "login";
+
+    [JsonPropertyName("id")]
+    [Required]
+    public string Id { get; init; } = string.Empty;
+
+    [JsonPropertyName("hashpassword")]
+    [Required]
+    public string HashPassword { get; init; } = string.Empty;
+}
+
+public sealed class LoginResponseMessage
+{
+    [JsonPropertyName("type")]
+    public string Type { get; init; } = "loginResponse";
+
+    [JsonPropertyName("HashPassword")]
+    public string HashPassword { get; init; } = string.Empty;
+
+    [JsonPropertyName("ID")]
+    public string Id { get; init; } = string.Empty;
+}
+
 public sealed class DatabaseOptions
 {
     public string Host { get; init; } = "127.0.0.1";
