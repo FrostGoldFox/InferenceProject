@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AdminClient/AdminClient.csproj" />
+  <Project Path="Client/Client.csproj" />
+  <Project Path="MainServer/MainServer.csproj" />
+  <Project Path="MiddleWare/MiddleWare.csproj" />
+</Solution>

@@ -1,0 +1,22 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# .NET build output
+**/bin/
+**/obj/
+artifacts/
+
+# Local backup files
+*.bak
+
+# Local configuration and secrets
+*.user.json
+.env
+.env.*
+secrets.json
+
+# OS files
+.DS_Store
+Thumbs.db
