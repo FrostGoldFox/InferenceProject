@@ -1,35 +1,30 @@
 # MainServer
 
-ASP.NET Core Web API 기반 상태 관리 및 DB 저장 서버다.
+ASP.NET Core 기반 요청 상태 및 DB 저장 서버입니다.
 
-## 현재 구현
+## API
 
-- `POST /Request`: Base64 이미지 JSON 수신
-- ClientId와 `Processing=true` 상태를 lock으로 관리
-- 요청을 MiddleWare `POST /Request`로 전달
-- 전달 실패 시 방금 추가한 Client 상태 제거
-- `POST /ResponSE`: InferenceServer 판정 수신
-- MiddleWare를 통해 고정 Client `POST /MainResponse`로 결과 전달
-- Client 전달 성공 후 `Processing=false`로 전환
-- 완료 결과를 최대 5건씩 MySQL 트랜잭션 저장
-- 5초 부분 flush 및 서버 종료 flush
-- DB 실패 시 메모리 목록으로 반환
-- `GET /health`
+- `POST /Request`: Base64 이미지 요청 접수 및 MiddleWare 전달
+- `POST /login/client`: Login 테이블의 비밀번호 해시 조회 후 Client로 중계
+- `POST /ResponSE`: 추론 결과 접수, Client 전달 및 저장 대기 전환
+- `GET /health`: 서버 상태 확인
 
-DB 조회 API, 로그인, Cloud, 중복 방지는 현재 범위에서 제외한다. 제품 저장을 위해 내부적으로 ProductName에서 ProductId를 찾는 SELECT는 사용한다.
+## 저장
 
-## 실행 설정
+완료 결과는 백그라운드 작업이 최대 5건씩 MySQL 트랜잭션으로 저장합니다. 5건 미만은 5초마다 부분 저장하며, DB 오류 시 메모리 목록으로 되돌려 재시도합니다. MainServer는 관리자용 조회 API를 제공하지 않습니다.
 
-- HTTP: `http://localhost:5181`
-- MiddleWare: `http://localhost:5073`
-- DB 비밀번호: 코드에 저장하지 않고 `Database__Password` 환경변수 사용
-- MySQL 기본 주소: `127.0.0.1:3307/inference_db`
+## 환경변수
 
-## 남은 보완
+- `ASPNETCORE_URLS`: 외부 수신 시 예: `http://0.0.0.0:5181`
+- `MiddleWare__BaseUrl`: 기본 `http://localhost:5073/`
+- `Database__Host`: 기본 `127.0.0.1`
+- `Database__Port`: 기본 `3307`
+- `Database__Database`: 기본 `inference_db`
+- `Database__User`: 기본 `inference_user`
+- `Database__Password`: 필수
 
-- 메모리 상태의 서버 재시작 내구성
-- DB 장애 시 지수 백오프
-- 요청별 상관관계 ID와 구조화 오류 계약
-- 자동 단위·통합 테스트
-- Client 최초 진입 경로 최종 확정
+```powershell
+dotnet run --project .\MainServer.csproj
+```
 
+비밀번호와 배포 주소는 소스 및 `appsettings.json`에 저장하지 않습니다.

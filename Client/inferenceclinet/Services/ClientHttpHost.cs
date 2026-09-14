@@ -147,7 +147,6 @@ public sealed class MainResponsePayload
     [JsonPropertyName("SucessRate")]
     public string SucessRate { get; set; } = string.Empty;
 
-    // 최고 신뢰도 검출의 confidence (0~1). 미검출 시 null.
     [JsonPropertyName("Confidence")]
     public double? Confidence { get; set; }
 

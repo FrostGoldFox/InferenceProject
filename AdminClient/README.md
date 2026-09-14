@@ -1,12 +1,25 @@
 # AdminClient
 
-솔루션에 포함된 .NET 10 WPF 프로젝트다.
+MySQL의 검사 기록과 통계를 조회하는 WPF 관리자 프로그램입니다.
 
-## 현재 상태
+## 화면
 
-현재 `MainWindow`가 빈 기본 스켈레톤이므로 로그인, 관리 기록, 통계, DB 조회가 구현되어 있지 않다.
+1. 로그인
+2. 관리 기록: 기간별 최대 200건, Client·제품·결과 정보 및 성공률 표시
+3. 통계: 누적 접속 Client, 일별 요청 수, 최근 7일 성공·실패, 최근 1000건 결과 비율
 
-실제 UI와 MySQL 조회 코드는 별도 프로젝트 `C:\Users\user\AdminClientWpf`에 있다. 두 프로젝트를 혼동하지 않도록 향후 별도 프로젝트를 이 위치로 이전하거나 솔루션에 직접 추가해야 한다.
+관리 기록 성공률은 40% 이상이면 초록, 미만이면 빨강으로 표시합니다.
 
-AdminClient의 DB 접근은 HTTP가 아니라 MySqlConnector를 이용한 직접 MySQL 조회 방식으로 구현되어 있다. 조회 전용 DB 계정 사용이 필요하다.
+## DB 환경변수
 
+- `ADMINCLIENT_DB_PASSWORD`: 필수
+- `ADMINCLIENT_DB_HOST`: 기본 `127.0.0.1`
+- `ADMINCLIENT_DB_PORT`: 기본 `3307`
+- `ADMINCLIENT_DB_NAME`: 기본 `inference_db`
+- `ADMINCLIENT_DB_USER`: 기본 `inference_user`
+
+```powershell
+dotnet run --project .\AdminClient.csproj
+```
+
+AdminClient는 조회 전용 계정을 사용하는 것을 권장합니다.

@@ -1,10 +1,7 @@
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using inferenceclinet.Models;
 using inferenceclinet.Services;
 
@@ -13,24 +10,16 @@ namespace inferenceclinet.Views;
 public partial class MonitorWindow : Window
 {
     private readonly ObservableCollection<InspectionRecord> _history = new();
-
-    // _history와 같은 인덱스로 1:1 대응 (검사 결과마다 하나씩 추가됨).
-    private readonly List<CheckErrorMetaData> _errorMetadata = new();
-
     private readonly IRequestService _requestService;
 
     private CameraCaptureService? _camera;
     private CancellationTokenSource? _captureCts;
-
-    private readonly DispatcherTimer _elapsedTimer = new() { Interval = TimeSpan.FromSeconds(1) };
-    private DateTime _analysisStartTime;
 
     public MonitorWindow()
     {
         InitializeComponent();
         HistoryGrid.ItemsSource = _history;
         _requestService = new RequestService(new HttpClient { BaseAddress = new Uri(AppConfig.MainServerBaseUrl) });
-        _elapsedTimer.Tick += (_, _) => ElapsedText.Text = (DateTime.Now - _analysisStartTime).ToString(@"hh\:mm\:ss");
     }
 
     private void OnAnalyzeClick(object sender, RoutedEventArgs e)
@@ -53,10 +42,6 @@ public partial class MonitorWindow : Window
         CamPlaceholderText.Visibility = Visibility.Collapsed;
         _captureCts = new CancellationTokenSource();
         _ = RunCaptureLoopAsync(_captureCts.Token);
-
-        _analysisStartTime = DateTime.Now;
-        ElapsedText.Text = "00:00:00";
-        _elapsedTimer.Start();
     }
 
     private void OnStopClick(object sender, RoutedEventArgs e)
@@ -68,7 +53,6 @@ public partial class MonitorWindow : Window
         _camera = null;
 
         CamPlaceholderText.Visibility = Visibility.Visible;
-        _elapsedTimer.Stop();
     }
 
     // 03-continuous-capture-plan.md 3절: 같은 clientId로 여러 요청이 동시에 대기하면
@@ -108,7 +92,7 @@ public partial class MonitorWindow : Window
                 await _requestService.SendAsync(request, ct);
                 var response = await waitTask;
 
-                HandleResponse(response, preview);
+                HandleResponse(response);
             }
             catch (HttpRequestException)
             {
@@ -123,7 +107,7 @@ public partial class MonitorWindow : Window
         }
     }
 
-    private void HandleResponse(MainResponsePayload? response, BitmapSource capturedFrame)
+    private void HandleResponse(MainResponsePayload? response)
     {
         if (response is null)
         {
@@ -138,35 +122,14 @@ public partial class MonitorWindow : Window
             ? $"{box[0]:0.0}, {box[1]:0.0}, {box[2]:0.0}, {box[3]:0.0}"
             : "-";
 
-        var confidenceText = response.Confidence is { } confidence
-            ? $"{confidence:P1}"
-            : "-";
-
         _history.Add(new InspectionRecord(
             DateTime.Now,
             isSuccess ? "정상" : "불량",
-            Confidence: confidenceText,
+            Confidence: response.Confidence is double confidence
+                ? $"{confidence:P2}"
+                : "-",
             DefectType: response.ProductName,
-            Box: boxText,
-            Image: capturedFrame));
-
-        var boxInts = response.Box is { Length: 4 } boxValues
-            ? new[]
-            {
-                (int)Math.Round(boxValues[0]),
-                (int)Math.Round(boxValues[1]),
-                (int)Math.Round(boxValues[2]),
-                (int)Math.Round(boxValues[3]),
-            }
-            : null;
-
-        _errorMetadata.Add(new CheckErrorMetaData
-        {
-            box = boxInts,
-            trust = (float)(response.Confidence ?? 0),
-            product = response.ProductName,
-            timestamp = DateTime.Now,
-        });
+            Box: boxText));
     }
 
     private static async Task DelayIgnoringCancel(CancellationToken ct)
@@ -183,23 +146,9 @@ public partial class MonitorWindow : Window
 
     private void OnHistoryRowDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        var index = HistoryGrid.SelectedIndex;
-        if (index >= 0 && HistoryGrid.SelectedItem is InspectionRecord record)
+        if (HistoryGrid.SelectedItem is InspectionRecord record)
         {
-            new DefectDetailWindow(record, _errorMetadata, index).Show();
+            new DefectDetailWindow(record).Show();
         }
-    }
-
-    // 표에서 더블클릭하지 않아도 선택된(또는 가장 최근) 이력의 상세 화면으로 바로 이동.
-    private void OnViewDetailClick(object sender, RoutedEventArgs e)
-    {
-        var index = HistoryGrid.SelectedIndex >= 0 ? HistoryGrid.SelectedIndex : _history.Count - 1;
-        if (index < 0)
-        {
-            MessageBox.Show("아직 검사 이력이 없습니다.", "상세보기", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        new DefectDetailWindow(_history[index], _errorMetadata, index).Show();
     }
 }

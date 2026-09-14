@@ -80,8 +80,7 @@ public sealed class MessageRouter(
         var baseUrl = _options.ClientBaseUrl;
         var path = _options.ClientResponsePath;
 
-        if (message.TryGetProperty("clientId", out var clientIdProperty) &&
-            clientIdProperty.GetString() is { } clientId &&
+        if (TryGetClientId(message, out var clientId) &&
             sessionStore.TryGetByClientNo(clientId, out var session))
         {
             baseUrl = session.CallbackUrl;
@@ -89,6 +88,24 @@ public sealed class MessageRouter(
         }
 
         return ForwardJsonAsync(baseUrl, path, message, cancellationToken);
+    }
+
+    private static bool TryGetClientId(JsonElement message, out string clientId)
+    {
+        clientId = string.Empty;
+        if (!message.TryGetProperty("ClientId", out var property) &&
+            !message.TryGetProperty("clientId", out property))
+        {
+            return false;
+        }
+
+        clientId = property.ValueKind switch
+        {
+            JsonValueKind.Number => property.GetRawText(),
+            JsonValueKind.String => property.GetString() ?? string.Empty,
+            _ => string.Empty
+        };
+        return clientId.Length > 0;
     }
 
     private async Task<object> ForwardJsonAsync(

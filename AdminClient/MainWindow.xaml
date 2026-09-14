@@ -1,12 +1,303 @@
-﻿<Window x:Class="AdminClient.MainWindow"
+<Window x:Class="AdminClientUI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:AdminClient"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="AdminClient" Width="1440" Height="860" MinWidth="1100" MinHeight="720"
+        WindowStartupLocation="CenterScreen">
     <Grid>
+        <!-- 1. 로그인 -->
+        <Grid x:Name="LoginPage" Background="{StaticResource PageBrush}">
+            <Border Width="430" Height="560" Padding="42" Background="White"
+                    BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="3" Opacity="0.12"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="22"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="18"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="28"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
+                    <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+                        <Border Width="92" Height="92" CornerRadius="46" Background="{StaticResource BlueSoftBrush}">
+                            <TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" FontSize="48"
+                                       Foreground="{StaticResource BlueBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="AdminClient" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,18,0,0"/>
+                        <TextBlock Text="안전한 관리, 더 나은 운영을 위해" Foreground="{StaticResource MutedBrush}"
+                                   FontSize="14" HorizontalAlignment="Center" Margin="0,7,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2">
+                        <TextBlock Text="아이디" FontWeight="SemiBold" Margin="0,0,0,7"/>
+                        <TextBox x:Name="UserIdTextBox" Style="{StaticResource InputTextBox}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="4">
+                        <TextBlock Text="비밀번호" FontWeight="SemiBold" Margin="0,0,0,7"/>
+                        <PasswordBox x:Name="PasswordInput" Height="42" Padding="12,8" FontSize="14"
+                                     BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Background="White"/>
+                    </StackPanel>
+
+                    <CheckBox Grid.Row="6" Content="아이디 저장" Foreground="{StaticResource MutedBrush}" FontSize="14"/>
+                    <Button Grid.Row="8" Content="로그인" Style="{StaticResource PrimaryButton}" Height="48" Click="Login_Click"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 2~3. 관리자 화면 -->
+        <Grid x:Name="AdminShell" Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0" Background="{StaticResource NavyBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="104"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="24"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="24,0">
+                    <Border Width="38" Height="38" CornerRadius="8" Background="{StaticResource BlueBrush}">
+                        <TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="21"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="AdminClient" Foreground="White" FontSize="20" FontWeight="SemiBold"
+                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                </StackPanel>
+                <Button x:Name="RecordsNavButton" Grid.Row="1" Style="{StaticResource SideButton}"
+                        Background="#1B5797" Click="RecordsNav_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE9D2;" FontFamily="Segoe MDL2 Assets" FontSize="18" Margin="0,0,14,0"/>
+                        <TextBlock Text="관리 기록"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="StatsNavButton" Grid.Row="2" Style="{StaticResource SideButton}" Click="StatsNav_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" FontSize="18" Margin="0,0,14,0"/>
+                        <TextBlock Text="통계"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Row="4" Style="{StaticResource SideButton}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="18" Margin="0,0,14,0"/>
+                        <TextBlock Text="설정"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Row="5" Style="{StaticResource SideButton}" Click="Logout_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8AC;" FontFamily="Segoe MDL2 Assets" FontSize="18" Margin="0,0,14,0"/>
+                        <TextBlock Text="로그아웃"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <Grid Grid.Column="1" Background="{StaticResource PageBrush}">
+                <!-- 관리 기록 -->
+                <Grid x:Name="RecordsPage" Margin="34,28">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="22"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="18"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="18"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="관리 기록" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="시스템의 모든 관리 작업 기록을 확인할 수 있습니다."
+                                   Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <Border Grid.Row="2" Style="{StaticResource CardBorder}" Padding="18">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="110"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="기간" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/><ColumnDefinition Width="24"/><ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <DatePicker x:Name="RecordsStartDatePicker" SelectedDate="2026-08-01" Height="34"/>
+                                    <TextBlock Grid.Column="1" Text="~" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <DatePicker Grid.Column="2" x:Name="RecordsEndDatePicker" SelectedDate="2026-09-30" Height="34"/>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="클라이언트" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <ComboBox Height="34" SelectedIndex="0"><ComboBoxItem Content="전체"/></ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="제품" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <ComboBox Height="34" SelectedIndex="0"><ComboBoxItem Content="전체"/></ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="6">
+                                <TextBlock Text="성공률" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <ComboBox Height="34" SelectedIndex="0"><ComboBoxItem Content="전체"/></ComboBox>
+                            </StackPanel>
+                            <Button Grid.Column="8" Content="검색" Style="{StaticResource PrimaryButton}" Height="34" VerticalAlignment="Bottom" Click="RecordsSearch_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="4" Style="{StaticResource CardBorder}" Padding="0">
+                        <DataGrid x:Name="RecordsList" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0"
+                                  RowHeight="46" ColumnHeaderHeight="44" AlternatingRowBackground="#FAFCFE">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="시간" Binding="{Binding Time}" Width="1.35*"/>
+                                <DataGridTextColumn Header="클라이언트" Binding="{Binding ClientName}" Width="*"/>
+                                <DataGridTextColumn Header="제품" Binding="{Binding ProductName}" Width="1.25*"/>
+                                <DataGridTextColumn Header="결과" Binding="{Binding ResultText}" Width="1.45*"/>
+                                <DataGridTemplateColumn Header="성공률" Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{Binding StatusBackground}" CornerRadius="12" Padding="10,4"
+                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding SuccessRateText}" Foreground="{Binding StatusForeground}" FontWeight="SemiBold"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <Grid Grid.Row="6">
+                        <TextBlock x:Name="RecordsCountText" Text="총 0건의 기록이 있습니다." Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                    </Grid>
+                </Grid>
+
+                <!-- 통계 -->
+                <Grid x:Name="StatisticsPage" Margin="34,28" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="18"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="18"/>
+                        <RowDefinition Height="230"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <StackPanel>
+                            <TextBlock Text="통계" FontSize="30" FontWeight="Bold"/>
+                            <TextBlock Text="시스템 사용 현황과 주요 통계를 확인할 수 있습니다."
+                                       Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Text="기간" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <DatePicker x:Name="StatsStartDatePicker" SelectedDate="2026-08-01" Width="145" Height="34" SelectedDateChanged="StatsDateRange_Changed"/>
+                            <TextBlock Text="~" Margin="8,0" VerticalAlignment="Center"/>
+                            <DatePicker x:Name="StatsEndDatePicker" SelectedDate="2026-09-30" Width="145" Height="34" SelectedDateChanged="StatsDateRange_Changed"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <UniformGrid Grid.Row="2" Columns="4">
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0">
+                            <StackPanel><TextBlock Text="전체 요청 수" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="TotalCountText" Text="0" FontSize="30" FontWeight="Bold" Margin="0,9,0,0"/></StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Margin="4,0,6,0">
+                            <StackPanel><TextBlock Text="성공한 처리" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="SuccessCountText" Text="0" FontSize="30" FontWeight="Bold" Margin="0,9,0,0"/></StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Margin="6,0,4,0">
+                            <StackPanel><TextBlock Text="실패한 처리" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="FailureCountText" Text="0" FontSize="30" FontWeight="Bold" Margin="0,9,0,0"/></StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Margin="10,0,0,0">
+                            <StackPanel><TextBlock Text="누적 접속 클라이언트" Foreground="{StaticResource MutedBrush}"/><TextBlock x:Name="ActiveClientCountText" Text="0" FontSize="30" FontWeight="Bold" Margin="0,9,0,0"/></StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <Grid Grid.Row="4">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                            <Grid>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                <TextBlock Text="일별 요청 수 추이" FontSize="17" FontWeight="SemiBold"/>
+                                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                    <Grid x:Name="TrendChartContent" Width="725" Height="225">
+                                        <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="24"/></Grid.RowDefinitions>
+                                        <Canvas x:Name="TrendChartCanvas" Grid.Row="0" ClipToBounds="True">
+                                            <Line x:Name="TrendLineBottom" X1="25" Y1="190" X2="700" Y2="190" Stroke="{StaticResource LineBrush}" StrokeThickness="1"/>
+                                            <Line x:Name="TrendLineLower" X1="25" Y1="140" X2="700" Y2="140" Stroke="{StaticResource LineBrush}" StrokeThickness="1"/>
+                                            <Line x:Name="TrendLineUpper" X1="25" Y1="90" X2="700" Y2="90" Stroke="{StaticResource LineBrush}" StrokeThickness="1"/>
+                                            <Line x:Name="TrendLineTop" X1="25" Y1="40" X2="700" Y2="40" Stroke="{StaticResource LineBrush}" StrokeThickness="1"/>
+                                            <Polyline x:Name="TrendPolyline"
+                                                      Stroke="{StaticResource BlueBrush}" StrokeThickness="3" Fill="Transparent"/>
+                                        </Canvas>
+                                        <Canvas x:Name="TrendDateLabelsCanvas" Grid.Row="1" Height="24"/>
+                                    </Grid>
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                            <Grid>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <TextBlock Text="처리 결과 비율 (최근 1,000개)" FontSize="17" FontWeight="SemiBold"/>
+                                <Grid Grid.Row="1" Width="170" Height="170" HorizontalAlignment="Center">
+                                    <Ellipse Stroke="{StaticResource DangerBrush}" StrokeThickness="24"/>
+                                    <Path x:Name="ResultArcPath" Stroke="{StaticResource SuccessBrush}" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock x:Name="DonutTotalText" Text="0" FontSize="27" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="전체" Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+                                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Ellipse Width="10" Height="10" Fill="{StaticResource SuccessBrush}" Margin="0,0,6,0"/><TextBlock x:Name="DonutSuccessText" Text="성공 0" Margin="0,0,18,0"/>
+                                    <Ellipse Width="10" Height="10" Fill="{StaticResource DangerBrush}" Margin="0,0,6,0"/><TextBlock x:Name="DonutFailureText" Text="실패 0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <Border Grid.Row="6" Style="{StaticResource CardBorder}">
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <TextBlock Text="최근 7일 작업 현황" FontSize="17" FontWeight="SemiBold"/>
+                            <ItemsControl x:Name="WeeklyBarsControl" Grid.Row="1" Margin="15,18,15,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="7"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel VerticalAlignment="Bottom" Margin="12,0">
+                                            <Border Height="{Binding SuccessHeight}" Background="{StaticResource SuccessBrush}"/>
+                                            <Border Height="{Binding FailureHeight}" Background="{StaticResource DangerBrush}" Margin="0,3,0,0"/>
+                                            <TextBlock Text="{Binding DateLabel}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

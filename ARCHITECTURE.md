@@ -1,37 +1,39 @@
-# InferenceProject 현재 아키텍처
+# 시스템 아키텍처
 
-## 구성
+## 구성 요소
 
-- `MainServer`: Client 요청 상태 관리, MiddleWare 호출, 추론 결과 수신, MySQL 저장
-- `MiddleWare`: 고정 목적지 기반 임시 1:1 HTTP JSON 중계
-- `InferenceServer`: Python/FastAPI/PyTorch 이미지 추론 서버
-- `Client`: WPF 스켈레톤만 존재
-- `AdminClient`: 솔루션 프로젝트는 WPF 스켈레톤만 존재
-- `AdminClientWpf`: 솔루션 외부에 있는 실제 관리자 조회 UI
-- `MySQL`: Docker 컨테이너 `inference-mysql`, 데이터베이스 `inference_db`
+- `Client`: WPF 로그인, 카메라 캡처, 검사 요청, 결과·신뢰도·Box 표시
+- `MiddleWare`: 시스템 간 HTTP JSON 메시지를 고정 경로로 중계
+- `MainServer`: 로그인 정보 조회, 처리 상태 관리, 결과 반환, MySQL 저장
+- `InferenceServer`: 시작 시 모델을 한 번 로드하고 큐 기반으로 이미지 추론
+- `AdminClient`: MySQL을 조회하여 관리 기록과 통계를 표시하는 WPF 프로그램
+- `MySQL`: 로그인, 제품, Client 및 검사 성공률 데이터 저장
 
-로그인과 토큰 검증은 다른 담당자 범위이고 Cloud 연동은 후순위이므로 현재 구현 범위에서 제외한다.
-
-## 현재 동작이 검증된 흐름
+## 전체 연결
 
 ```text
-가상 Client
-  -> MainServer POST /Request
-  -> MiddleWare POST /Request
-  -> InferenceServer POST /message
-  -> Base64 이미지 복원 및 추론
-  -> MiddleWare POST /ResponSE
-  -> MainServer POST /ResponSE
-  -> MiddleWare POST /MainResponse
-  -> 고정 Client POST /MainResponse
-  -> MainServer가 완료 결과를 MySQL에 저장
+Client(WPF/Camera)
+  -> MainServer
+  -> MiddleWare
+  -> InferenceServer
+  -> MiddleWare
+  -> MainServer
+  -> MiddleWare
+  -> Client
+
+MainServer -> MySQL <- AdminClient(WPF)
 ```
 
-Client 애플리케이션이 아직 비어 있으므로 실제 Client 구현 전에 최초 요청이 MainServer로 직접 들어갈지, MiddleWare가 MainServer로 중계할지 최종 확정해야 한다. 현재 구현과 통합 테스트는 MainServer 직접 진입 방식이다.
+모듈 간 전송은 HTTP JSON을 사용하며, MySQL 연결에는 MySQL 프로토콜을 사용합니다. 서버 주소와 자격증명은 환경변수로 주입합니다.
 
-## 프로토콜
+## 책임 경계
 
-서버 간 통신은 HTTP JSON을 사용한다. MainServer와 MySQL 사이는 HTTP가 아니라 MySQL 드라이버 프로토콜이다. AdminClientWpf도 MySqlConnector로 MySQL에 직접 접속한다.
+- MainServer는 검사 결과를 저장하지만 관리자용 DB 조회 API는 제공하지 않습니다.
+- AdminClient는 MySQL을 직접 조회하며 검사 데이터를 변경하지 않습니다.
+- InferenceServer는 임계값 이상 검출이 하나 이상이면 `sucess`, 없으면 `fail`을 반환합니다.
+- `SucessRate`와 `sucess` 철자는 기존 팀 계약과의 호환을 위해 유지합니다.
+- AWS/Cloud 전송은 현재 실행 경로에 포함하지 않습니다.
 
-상세 계약은 [DATAFLOW.md](DATAFLOW.md), DB 스키마는 [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)를 참고한다.
+## 배포
 
+로컬 기본 주소는 모두 `localhost`입니다. 여러 PC에서 실행할 때 `ASPNETCORE_URLS`와 각 모듈의 주소 환경변수를 설정하고, 수신 포트의 OS 방화벽 및 네트워크 접근을 별도로 허용해야 합니다.

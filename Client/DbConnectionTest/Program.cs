@@ -1,22 +1,24 @@
 using inferenceclinet.Data;
 using MySqlConnector;
 
-// 접속 정보는 하드코딩하지 않고 환경변수로 주입 (Database__Host/Port/Database/User/Password).
-string BuildConnectionString()
+var password = Environment.GetEnvironmentVariable("CLIENT_DB_PASSWORD");
+if (string.IsNullOrWhiteSpace(password))
 {
-    var host = Environment.GetEnvironmentVariable("Database__Host") ?? "127.0.0.1";
-    var port = Environment.GetEnvironmentVariable("Database__Port") ?? "3306";
-    var database = Environment.GetEnvironmentVariable("Database__Database") ?? "inference_db";
-    var user = Environment.GetEnvironmentVariable("Database__User") ?? string.Empty;
-    var password = Environment.GetEnvironmentVariable("Database__Password") ?? string.Empty;
-
-    return $"Server={host};Port={port};Database={database};User Id={user};Password={password};";
+    throw new InvalidOperationException("CLIENT_DB_PASSWORD 환경변수가 설정되지 않았습니다.");
 }
 
-var ConnectionString = BuildConnectionString();
+var connectionString = new MySqlConnectionStringBuilder
+{
+    Server = Environment.GetEnvironmentVariable("CLIENT_DB_HOST") ?? "127.0.0.1",
+    Port = uint.TryParse(Environment.GetEnvironmentVariable("CLIENT_DB_PORT"), out var port) ? port : 3307,
+    Database = Environment.GetEnvironmentVariable("CLIENT_DB_NAME") ?? "inference_db",
+    UserID = Environment.GetEnvironmentVariable("CLIENT_DB_USER") ?? "inference_user",
+    Password = password,
+    SslMode = MySqlSslMode.Preferred
+}.ConnectionString;
 
 Console.WriteLine("1) 원시 연결 테스트 (SELECT 1)");
-await using (var connection = new MySqlConnection(ConnectionString))
+await using (var connection = new MySqlConnection(connectionString))
 {
     await connection.OpenAsync();
     await using var command = new MySqlCommand("SELECT 1;", connection);
@@ -25,7 +27,7 @@ await using (var connection = new MySqlConnection(ConnectionString))
 }
 
 Console.WriteLine("2) Login 테이블 내 ID 목록 (최대 5개)");
-await using (var connection = new MySqlConnection(ConnectionString))
+await using (var connection = new MySqlConnection(connectionString))
 {
     await connection.OpenAsync();
     await using var command = new MySqlCommand("SELECT `ID` FROM `Login` LIMIT 5;", connection);
